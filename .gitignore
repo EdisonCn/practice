@@ -11,7 +11,6 @@ gen
 .idea/
 pom.xml
 smvc.iml
-src/
 target/
 smvc.ipr
 smvc.iws
