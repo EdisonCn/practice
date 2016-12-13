@@ -23,22 +23,22 @@ public class FstTest {
 
     private static FSTConfiguration conf = FSTConfiguration.createDefaultConfiguration();
 
-    private static FSTConfiguration jconf = FSTConfiguration.createJsonConfiguration(false,false);
+    private static FSTConfiguration jconf = FSTConfiguration.createJsonConfiguration(false, false);
 
 
     @Before
-    public void before(){
-        user = new User(2000L,"xiaozhang",Byte.valueOf("1"),19,"南京");
+    public void before() {
+        user = new User(2000L, "xiaozhang", Byte.valueOf("1"), 19, "南京");
         start = Instant.now().toEpochMilli();
     }
 
     @After
-    public void after(){
-        System.out.println("处理耗时:"+(Instant.now().toEpochMilli() - start)/1000f +" sec.");
+    public void after() {
+        System.out.println("处理耗时:" + (Instant.now().toEpochMilli() - start) / 1000f + " sec.");
     }
 
     @Test
-    public void combined(){
+    public void combined() {
         byte[] bits = serialize();
         User user = deserialize(bits);
         System.out.println(user);
@@ -46,21 +46,21 @@ public class FstTest {
         System.out.println(json);
     }
 
-    public String toJSON(User user){
+    public String toJSON(User user) {
         return jconf.asJsonString(user);
     }
 
 
-    public byte[] serialize(){
+    public byte[] serialize() {
         byte[] bits = conf.asByteArray(user);
-        for(byte b : bits){
-            System.out.print(Byte.toString(b)+" ");
+        for (byte b : bits) {
+            System.out.print(Byte.toString(b) + " ");
         }
         System.out.print("\n");
         return bits;
     }
 
-    public <T> T deserialize(byte[] bits){
+    public <T> T deserialize(byte[] bits) {
         return (T) conf.asObject(bits);
     }
 
