@@ -19,7 +19,7 @@ public class DownloadRequest extends AbstractRequest{
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("UploadRequest{");
+        final StringBuilder sb = new StringBuilder("DownloadRequest{");
         sb.append("cmd=").append(HexUtils.toHexString(cmd)).append(',');
         sb.append("requestId=").append(requestId).append(',');
         sb.append("md5Key=").append(md5Key).append(',');
