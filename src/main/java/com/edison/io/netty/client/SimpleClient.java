@@ -1,5 +1,6 @@
 package com.edison.io.netty.client;
 
+import com.edison.io.netty.protocol.Cmd;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,9 +36,9 @@ public class SimpleClient {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new LoggingHandler(LogLevel.DEBUG));
-                            p.addLast(new LengthFieldBasedFrameDecoder(1024,0,4));
+                            //p.addLast(new LengthFieldBasedFrameDecoder(1024,0,4));
                             p.addLast(new DFSMessageDecoder());
-                            p.addLast(new EchoClientHandler());
+                            p.addLast(new EchoClientHandler(Cmd.DOWLOAD));
                         }
                     });
 

@@ -1,6 +1,8 @@
 package com.edison.io.netty.server;
 
+import com.edison.io.netty.protocol.Cmd;
 import com.edison.io.netty.protocol.request.AbstractRequest;
+import com.edison.io.netty.protocol.request.DownloadRequest;
 import com.edison.io.netty.protocol.request.UploadRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -44,7 +46,11 @@ public class SimpleDFSMessageDecoder extends ByteToMessageDecoder {
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         int readable = in.readableBytes();
         if (headRead) {
-            readContent(in);
+            if (request.getCmd() == Cmd.UPLOAD) {
+                readContent(in);
+            }else if(request.getCmd() == Cmd.DOWLOAD){
+                readDownloadContent(in);
+            }
         } else {
             //如果还没达到头的长度
             if (readable < minHeadLen) {
@@ -52,8 +58,10 @@ public class SimpleDFSMessageDecoder extends ByteToMessageDecoder {
             }
             len = in.readInt();
             int cmd = in.readInt();
-            if (cmd == 0x01) {
+            if (cmd == Cmd.UPLOAD) {
                 request = new UploadRequest();
+            }else if(cmd == Cmd.DOWLOAD){
+                request = new DownloadRequest();
             }
             request.setCmd(cmd);
             request.setRequestId(in.readBytes(32).toString(Charset.forName("utf-8")));
@@ -62,11 +70,19 @@ public class SimpleDFSMessageDecoder extends ByteToMessageDecoder {
         }
 
         if (len == receivedLen) {
-            System.out.println("文件写入完毕");
-            channel.close();
-            raf.close();
+            if(channel != null) channel.close();
+            if(raf != null) raf.close();
             out.add(request);
         }
+    }
+
+
+    private void readDownloadContent(ByteBuf in) throws IOException {
+        int readable = in.readableBytes();
+        if(readable < 32) return;
+        DownloadRequest r = (DownloadRequest) request;
+        r.setMd5Key(in.readBytes(32).toString(Charset.forName("utf-8")).trim());
+        receivedLen += 32;
     }
 
     protected void readContent(ByteBuf in) throws IOException {

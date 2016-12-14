@@ -1,5 +1,8 @@
 package com.edison.io.netty.client;
 
+import com.edison.io.netty.protocol.Cmd;
+import com.edison.io.netty.util.ByteBufUtils;
+import com.edison.io.netty.util.ByteUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -30,40 +33,52 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
     //大文件
     private final static File file = new File("C:\\dev_tools\\mysql-5.7.14-winx64.zip");
 
-    private final static int UPLOAD_CMD = 0x01;
-
     private long start;
 
     private byte[] names;
+
+    private int cmd;
+
+
+
     /**
      * Creates a client-side handler.
      */
-    public EchoClientHandler() {
-        String fileName = file.getName();
-        names = warpFileName(fileName);
-        Integer len = (int)(36 + names.length+file.length());
-        header = Unpooled.buffer(len.intValue());
-        header.writeInt(len);
-        header.writeInt(UPLOAD_CMD);
-        header.writeBytes(requestId.getBytes());
-        header.writeBytes(names);
-    }
-
-    private byte[] warpFileName(String fileName){
-
-        byte[] bytes = new byte[64];
-        byte[] original = fileName.getBytes();
-        System.arraycopy(original,0,bytes,0,original.length);
-        for(int i=0;i<original.length -bytes.length;i++){
-            bytes[i+original.length] = 32;
+    public EchoClientHandler(int cmd) {
+        this.cmd = cmd;
+        int len = 0;
+        if(cmd == Cmd.UPLOAD){
+            String fileName = file.getName();
+            names = ByteUtils.wrap(fileName, 64, (byte) 32);
+            len = (int)(36 + names.length+file.length());
+        }else if(cmd == Cmd.DOWLOAD){
+            len = 68;//cmd|requestId|md5key
         }
-        return bytes;
+        header = Unpooled.buffer(len);
+        header.writeInt(len);
+        header.writeInt(cmd);
+        header.writeBytes(requestId.getBytes());
     }
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        start = Instant.now().toEpochMilli();
         ctx.writeAndFlush(header);
+        if(cmd == Cmd.UPLOAD){
+            writeUpload(ctx);
+        }else if(cmd == Cmd.DOWLOAD){
+            writeDownload(ctx);
+        }
+    }
+
+    private void writeDownload(ChannelHandlerContext ctx)  throws IOException {
+        ctx.writeAndFlush(Unpooled.copiedBuffer(requestId.replaceAll("a","b").getBytes()));
+    }
+
+
+    private void writeUpload(ChannelHandlerContext ctx)  throws IOException {
+        start = Instant.now().toEpochMilli();
+        ctx.writeAndFlush(Unpooled.copiedBuffer(names));
 
 
         /*//使用zero copy ~1s
@@ -103,7 +118,7 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
         System.out.println("接收到服务端处理结果:" + msg);
         long end = Instant.now().toEpochMilli();
-        System.out.println("处理耗时："+(end -start)/1000f+" sec.");
+        System.out.println("处理耗时："+(end -start)/1000.0+" sec.");
         ctx.close();
     }
 
@@ -114,7 +129,6 @@ public class EchoClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        // Close the connection when an exception is raised.
         cause.printStackTrace();
         ctx.close();
     }

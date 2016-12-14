@@ -21,6 +21,8 @@ public class Response {
 
     private String message;
 
+    private String tfp;
+
     public int getCmd() {
         return cmd;
     }
@@ -61,6 +63,14 @@ public class Response {
         this.message = message;
     }
 
+    public String getTfp() {
+        return tfp;
+    }
+
+    public void setTfp(String tfp) {
+        this.tfp = tfp;
+    }
+
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("Response{");
@@ -69,6 +79,7 @@ public class Response {
         sb.append(", md5Key=").append(md5Key);
         sb.append(", code=").append(code);
         sb.append(", message=").append(message);
+        sb.append(", tfp=").append(tfp);
         sb.append('}');
         return sb.toString();
     }

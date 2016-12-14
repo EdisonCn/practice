@@ -12,6 +12,6 @@ public class Bootstrap {
     public static void main(String[] args) throws InterruptedException {
         Server server = new Server(1,1,1234);
         server.start(true);
-        server.shutdown();
+        //server.shutdown();
     }
 }
