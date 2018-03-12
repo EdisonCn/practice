@@ -51,7 +51,7 @@ public class CyclicBarrierTest {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            logger.info("所有线程写入完毕，继续处理其他任务...");
+            logger.info("线程写入完毕，继续处理其他任务...");
             return result;
         }
     }
